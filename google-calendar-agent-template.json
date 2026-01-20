@@ -1,0 +1,308 @@
+{
+  "name": "Google Calendar 小幫手",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [0, 0],
+      "id": "e936a585-aa33-4d97-b1af-52f495835787",
+      "name": "When chat message received",
+      "webhookId": "b3132b89-5ded-4a81-adc5-6682f1e72882"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=! 緊急執行 !\n你現在的運行環境日期是：{{ $now.format('yyyy-MM-dd') }}\n今天是：星期{{ $now.format('cccc') }} (例如：星期二)\n\n規則：\n1. 當用戶提到「明天」、「下週」或「下禮拜幾」時，請務必先根據上述日期與星期進行數學推算。\n2. 如果計算結果跨月，請記得 1 月有 31 天。\n3. 在調用 Google Calendar 之前，請先在心裡確認：(今天日期 + 間隔天數) = 目標日期。\n\nTool Rules (CRITICAL) 當你呼叫 Google Calendar 工具時，必須嚴格遵守以下參數邏輯：\n\nallday:\n若使用者提到「全天」、「整天」或未指定具體小時，此值必須為 true，並且allday格式為：yes\n\n若有明確時間（如 10:00），此值必須為 false。\n\nTime Handling: 根據當前日期計算正確的 ISO 開始與結束時間。\n\n範例 1： 用戶：幫我預約明天全天會議。 決策：allday = true\n\n範例 2： 用戶：明天下午兩點開會。 決策：allday = false\n\n整個行事曆確保時間沒有重複，如果活動時間重複幫我解決：\n1.新增的活動如果與舊活動時間重疊，將舊活動往後更新移到空白時間\n2.再次閱讀行事曆，確定活動皆沒有重疊\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [544, 0],
+      "id": "a34cede6-c097-44ee-8c7b-2297128df131",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [384, 240],
+      "id": "f1d4394b-e54e-40bb-8f8f-47c3799745d6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [544, 240],
+      "id": "31c42943-29e7-4f51-9561-e8e8e322aaf8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {
+          "includeInputFields": true
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [208, 0],
+      "id": "a43104df-bc60-4cc9-a4f5-714006faddf6",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list",
+          "cachedResultName": "n8n日曆"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "useDefaultReminders": false,
+        "additionalFields": {
+          "allday": "={{ $fromAI('allday') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [688, 240],
+      "id": "d945df0c-5525-4607-a10b-af7e2d98fad6",
+      "name": "C",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "p8NKKDcAauIdRTtq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list",
+          "cachedResultName": "n8n日曆"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [1008, 240],
+      "id": "c279242f-766f-422b-9b55-186567e296ee",
+      "name": "D",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "p8NKKDcAauIdRTtq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list",
+          "cachedResultName": "n8n日曆"
+        },
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [800, 240],
+      "id": "082699a9-52e5-4fee-8fb6-50d1c91238c5",
+      "name": "R",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "p8NKKDcAauIdRTtq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list",
+          "cachedResultName": "n8n日曆"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "allday": "={{$frome('allday')}}",
+          "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+          "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [912, 240],
+      "id": "e6094a85-ba35-42f1-bf1d-da236d9d5a91",
+      "name": "U",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "p8NKKDcAauIdRTtq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=當你需要知道今天、明天、下週或任何特定日期時使用。輸入參數為要加減的天數或描述。",
+        "jsCode": "// 獲取當前時間\nconst now = new Date();\n// 這裡可以根據 Agent 傳入的參數做加減，或者直接返回目前標準時間\nreturn {\n    today: now.toISOString().split('T')[0],\n    day_of_week: now.toLocaleDateString('zh-TW', { weekday: 'long' }),\n    next_week_today: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]\n};"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [1120, 240],
+      "id": "f9e43b80-a5a0-4040-ad33-80af4faefc47",
+      "name": "date_calculator"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "D": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "R": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [[]]
+    },
+    "U": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "date_calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "2daf4682-691e-48ac-a40e-74764cb0dd1d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "id": "v8qnc6l3VqUr_kRbRmRKN",
+  "tags": []
+}
