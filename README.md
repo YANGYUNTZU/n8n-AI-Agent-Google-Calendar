@@ -45,3 +45,11 @@ graph TD
     C --> D[📅 Google Calendar<br/>CRUD Ops]
     C --> E[🔢 Date Calculator]
     B --> F[💬 回傳處理結果]
+```
+
+## 📸 執行截圖範例
+
+![工作流配置](/images/Workflow.png)
+![結果](/images/result.png)
+
+*圖：AI Agent 根據當前日期成功推算並完成行事曆預約。*
